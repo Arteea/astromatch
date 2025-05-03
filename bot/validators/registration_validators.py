@@ -8,7 +8,9 @@ class RegistrationValidator:
 
     @staticmethod
     def validate_phone(phone: str, phone_regex=r'^\+7\d{10}$'):
-        if phone.startswith("7") and len(phone) == 11: ###Добавляем "+" т.к. телеграм при первом неудачном сценарии и повторной отправке номера некорректно достает контакт,без символа
+
+        if phone.startswith("7") and len(phone) == 11:
+            ###Добавляем "+" т.к. телеграм при первом неудачном сценарии и повторной отправке номера некорректно достает контакт,без символа
             phone = "+" + phone
         if not re.fullmatch(phone_regex, phone):
             raise ValueError(f'❌Скиньте контакт в формате номера РФ')
