@@ -12,9 +12,9 @@ class RedisRegistrationCache:
     Атрибуты:
         user_key (str): Ключ Redis, уникальный для каждого пользователя.
     '''
-    def __init__(self, user_id):
+    def __init__(self, user_id, redis=r):
         self.user_key = f"{user_id}"
-    
+        self.redis = redis
     async def set_value(self, key, value, seconds=3600):
         '''
         Устанавливает значение в Redis Hash для текущего пользователя.
@@ -23,14 +23,14 @@ class RedisRegistrationCache:
             value (str): Значение, связанное с ключом.
             seconds (int, optional): Время жизни ключа в секундах. По умолчанию 3600.
         '''
-        await r.hset(self.user_key, mapping={key: value})
-        await r.expire(key, seconds)
+        await self.redis.hset(self.user_key, mapping={key: value})
+        await self.redis.expire(key, seconds)
     
     async def get_all_info_from_cache(self):
         '''Получает всю сохраненную информацию пользователя из Redis Hash.
         Returns:
             dict: Все пары ключ-значение, сохраненные в хэше пользователя за время регистрации.'''
-        info = await r.hgetall(self.user_key)
+        info = await self.redis.hgetall(self.user_key)
         return info
     
     async def get_value(self, key):
@@ -39,7 +39,7 @@ class RedisRegistrationCache:
             key (str): Ключ для получения значения.
         Returns:
             str or None:'''
-        value = await r.hget(self.user_key, key)
+        value = await self.redis.hget(self.user_key, key)
         return value
     
     @property
@@ -55,8 +55,8 @@ class RedisRegistrationCache:
             file_id (str): Идентификатор медиафайла file_id из Telegram.
             seconds (int, optional): Время жизни ключа в секундах. По умолчанию 3600.
         '''
-        await r.sadd(self.media_key, file_id)  
-        await r.expire(self.media_key, seconds)
+        await self.redis.sadd(self.media_key, file_id)  
+        await self.redis.expire(self.media_key, seconds)
     
     async def get_all_users_media_from_cache(self):
         """
@@ -64,5 +64,5 @@ class RedisRegistrationCache:
         Returns:
             set: Множество идентификаторов медиа file_id.
         """
-        result = await r.smembers(self.media_key)
+        result = await self.redis.smembers(self.media_key)
         return result
